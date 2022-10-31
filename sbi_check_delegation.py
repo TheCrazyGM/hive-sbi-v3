@@ -22,14 +22,13 @@ def run():
     config_file = 'config.json'
     if not os.path.isfile(config_file):
         raise Exception("config.json is missing!")
-    else:
-        with open(config_file) as json_data_file:
-            config_data = json.load(json_data_file)
-        # print(config_data)
-        databaseConnector = config_data["databaseConnector"]
-        databaseConnector2 = config_data["databaseConnector2"]
-        mgnt_shares = config_data["mgnt_shares"]
-        hive_blockchain = config_data["hive_blockchain"]
+    with open(config_file) as json_data_file:
+        config_data = json.load(json_data_file)
+    # print(config_data)
+    databaseConnector = config_data["databaseConnector"]
+    databaseConnector2 = config_data["databaseConnector2"]
+    mgnt_shares = config_data["mgnt_shares"]
+    hive_blockchain = config_data["hive_blockchain"]
 
 
     db = dataset.connect(databaseConnector)
@@ -75,16 +74,15 @@ def run():
         account = "steembasicincome"
         delegation = {}
         delegation_shares = {}
-        sum_sp = 0
-        sum_sp_leased = 0
-        sum_sp_shares = 0
         delegation_timestamp = {}
 
         print("load delegation")
-        delegation_list = []
-        for d in trxStorage.get_share_type(share_type="Delegation"):
-            if d["share_type"] == "Delegation":
-                delegation_list.append(d)
+        delegation_list = [
+            d
+            for d in trxStorage.get_share_type(share_type="Delegation")
+            if d["share_type"] == "Delegation"
+        ]
+
         for d in trxStorage.get_share_type(share_type="DelegationLeased"):
             if d["share_type"] == "DelegationLeased":
                 delegation_list.append(d)
@@ -113,15 +111,12 @@ def run():
         delegation_shares = {}
         print("update delegation")
         delegation_account = delegation
-        for acc in delegation_account:
-            if delegation_account[acc] == 0:
+        for acc, value in delegation_account.items():
+            if value == 0:
                 continue
             if last_delegation_check is not None and delegation_timestamp[acc] <= last_delegation_check:
                 continue
-            if last_delegation_check is not None and last_delegation_check < delegation_timestamp[acc]:
-                last_delegation_check = delegation_timestamp[acc]
-            elif last_delegation_check is None:
-                last_delegation_check = delegation_timestamp[acc]
+            last_delegation_check = delegation_timestamp[acc]
             # if acc in delegation_shares and delegation_shares[acc] > 0:
             #    continue
             print(acc)
@@ -134,18 +129,15 @@ def run():
             delegation_leased[acc] = delegation_account[acc]
             trxStorage.update_delegation_state(account, acc, "Delegation",
                                               "DelegationLeased")
-            print("set delegration from %s to leased" % acc)
+            print(f"set delegration from {acc} to leased")
 
 
         dd = delegation
-        for d in dd:
-            sum_sp += dd[d]
+        sum_sp = sum(dd.values())
         dd = delegation_leased
-        for d in dd:
-            sum_sp_leased += dd[d]
+        sum_sp_leased = sum(dd.values())
         dd = delegation_shares
-        for d in dd:
-            sum_sp_shares += dd[d]
+        sum_sp_shares = sum(dd.values())
         print("%s: sum %.6f SP - shares %.6f SP - leased %.6f SP" % (account, sum_sp,  sum_sp_shares,  sum_sp_leased))
 
 

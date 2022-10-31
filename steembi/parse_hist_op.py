@@ -135,7 +135,7 @@ class ParseAccountHist(list):
             memo = Memo(account, op["to"], steem_instance=self.steem)
             processed_memo = ascii(memo.decrypt(processed_memo)).replace('\n', '')
             encrypted = True
-        
+
         if amount.amount < 1:
             data = {"index": index, "sender": account, "to": op["to"], "memo": processed_memo, "encrypted": encrypted, "referenced_accounts": None, "amount": amount.amount, "amount_symbol": amount.symbol, "timestamp": timestamp}
             self.transactionOutStorage.add(data)            
@@ -154,13 +154,11 @@ class ParseAccountHist(list):
             self.new_transfer_record(op["index"], processed_memo, op["to"], op["to"], sponsee, shares, op["timestamp"], share_type="Refund")
             # self.new_transfer_record(op["index"], op["to"], "", shares, op["timestamp"], share_type="Refund")
             data = {"index": index, "sender": account, "to": op["to"], "memo": processed_memo, "encrypted": encrypted, "referenced_accounts": sponsee, "amount": amount.amount, "amount_symbol": amount.symbol, "timestamp": timestamp}
-            self.transactionOutStorage.add(data)             
-            return
-
         else:
-            data = {"index": index, "sender": account, "to": op["to"], "memo": processed_memo, "encrypted": encrypted, "referenced_accounts": None, "amount": amount.amount, "amount_symbol": amount.symbol, "timestamp": timestamp}
-            self.transactionOutStorage.add(data)
-            return            
+            data = {"index": index, "sender": account, "to": op["to"], "memo": processed_memo, "encrypted": encrypted, "referenced_accounts": None, "amount": amount.amount, "amount_symbol": amount.symbol, "timestamp": timestamp}            
+
+        self.transactionOutStorage.add(data)
+        return            
 
     def parse_transfer_in_op(self, op):
         amount = Amount(op["amount"], steem_instance=self.steem)
@@ -179,23 +177,30 @@ class ParseAccountHist(list):
             processed_memo = ascii(memo.decrypt(processed_memo)).replace('\n', '')
 
         shares = int(amount.amount)
-        if processed_memo.lower().replace(',', '  ').replace('"', '') == "":
+        if not processed_memo.lower().replace(',', '  ').replace('"', ''):
             self.new_transfer_record(index, processed_memo, account, account, json.dumps(sponsee), shares, timestamp)
             return
-        [sponsor, sponsee, not_parsed_words, account_error] = self.memo_parser.parse_memo(processed_memo, shares, account)        
+        [sponsor, sponsee, not_parsed_words, account_error] = self.memo_parser.parse_memo(processed_memo, shares, account)
         if amount.amount < 1:
-            data = {"index": index, "sender": account, "to": self.account["name"], "memo": processed_memo, "encrypted": False, "referenced_accounts": sponsor + ";" + json.dumps(sponsee), "amount": amount.amount, "amount_symbol": amount.symbol, "timestamp": timestamp}
+            data = {
+                "index": index,
+                "sender": account,
+                "to": self.account["name"],
+                "memo": processed_memo,
+                "encrypted": False,
+                "referenced_accounts": f"{sponsor};{json.dumps(sponsee)}",
+                "amount": amount.amount,
+                "amount_symbol": amount.symbol,
+                "timestamp": timestamp,
+            }
+
             self.transactionStorage.add(data)
             return
         if amount.symbol == self.steem.sbd_symbol:
             share_type = self.steem.sbd_symbol
-        
-        sponsee_amount = 0
-        for a in sponsee:
-            sponsee_amount += sponsee[a]
-        
-        
-        if sponsee_amount == 0 and not account_error and True:
+
+        sponsee_amount = sum(sponsee[a] for a in sponsee)
+        if sponsee_amount == 0 and not account_error:
             sponsee_account = self.get_highest_avg_share_age_account()
             sponsee = {sponsee_account: shares}
             print("%s sponsers %s with %d shares" % (sponsor, sponsee_account, shares))
@@ -203,12 +208,7 @@ class ParseAccountHist(list):
             self.memberStorage.update_avg_share_age(sponsee_account, 0)
             self.member_data[sponsee_account]["avg_share_age"] = 0            
             return
-        elif sponsee_amount == 0 and not account_error:
-            sponsee = {}
-            message = op["timestamp"] + " to: " + self.account["name"] + " from: " + sponsor + ' amount: ' + str(amount) + ' memo: ' + processed_memo + '\n'
-            self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, status="LessOrNoSponsee", share_type=share_type)
-            return
-        if sponsee_amount != shares and not account_error and True:
+        if sponsee_amount != shares and not account_error:
             sponsee_account = self.get_highest_avg_share_age_account()
             sponsee_shares = shares-sponsee_amount
             if sponsee_shares > 0 and sponsee_account is not None:
@@ -217,22 +217,16 @@ class ParseAccountHist(list):
                 self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, share_type=share_type)
                 self.memberStorage.update_avg_share_age(sponsee_account, 0)
                 self.member_data[sponsee_account]["avg_share_age"] = 0
-                return
             else:
                 sponsee = {}
                 self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, status="LessOrNoSponsee", share_type=share_type)
-                return
-        elif sponsee_amount != shares and not account_error:
-            message = op["timestamp"] + " to: " + self.account["name"] + " from: " + sponsor + ' amount: ' + str(amount) + ' memo: ' + ascii(op["memo"]) + '\n'
-            self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, status="LessOrNoSponsee", share_type=share_type)            
-
-            return        
+            return
         if account_error:
             message = op["timestamp"] + " to: " + self.account["name"] + " from: " + sponsor + ' amount: ' + str(amount) + ' memo: ' + ascii(op["memo"]) + '\n'
             self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, status="AccountDoesNotExist", share_type=share_type)
 
             return
-        
+
         self.new_transfer_record(index, processed_memo, account, sponsor, json.dumps(sponsee), shares, timestamp, share_type=share_type)
 
     def new_transfer_record(self, index, memo, account, sponsor, sponsee, shares, timestamp,  status="Valid", share_type="Standard"):
@@ -272,7 +266,7 @@ class ParseAccountHist(list):
             return
 
     def add_mngt_shares(self, last_op, mgnt_shares, op_count):
-        
+
         index = last_op["index"]
         timestamp = last_op["timestamp"]
         sponsee = {}

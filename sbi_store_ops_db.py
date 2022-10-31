@@ -31,12 +31,7 @@ def get_account_trx_data(account, start_block, start_index):
         op_in_trx = 0
         virtual_op = 0
 
-    if start_index is not None:
-        start_index = start_index["op_acc_index"] + 1
-        # print("account %s - %d" % (account["name"], start_index))
-    else:
-        start_index = 0
-
+    start_index = start_index["op_acc_index"] + 1 if start_index is not None else 0
     data = []
     last_block = 0
     last_trx = trx_in_block
@@ -51,9 +46,8 @@ def get_account_trx_data(account, start_block, start_index):
                     continue
                 if op["op_in_trx"] <= op_in_trx and (trx_in_block != last_trx or last_block == 0):
                     continue
-            else:
-                if op["virtual_op"] <= virtual_op and (trx_in_block == last_trx):
-                    continue
+            elif op["virtual_op"] <= virtual_op and (trx_in_block == last_trx):
+                continue
         start_block = op["block"]
         virtual_op = op["virtual_op"]
         trx_in_block = op["trx_in_block"]
@@ -105,13 +99,12 @@ def run():
     config_file = 'config.json'
     if not os.path.isfile(config_file):
         raise Exception("config.json is missing!")
-    else:
-        with open(config_file) as json_data_file:
-            config_data = json.load(json_data_file)
-        # print(config_data)
-        databaseConnector = config_data["databaseConnector"]
-        databaseConnector2 = config_data["databaseConnector2"]
-        hive_blockchain = config_data["hive_blockchain"]
+    with open(config_file) as json_data_file:
+        config_data = json.load(json_data_file)
+    # print(config_data)
+    databaseConnector = config_data["databaseConnector"]
+    databaseConnector2 = config_data["databaseConnector2"]
+    hive_blockchain = config_data["hive_blockchain"]
     start_prep_time = time.time()
     # sqlDataBaseFile = os.path.join(path, database)
     # databaseConnector = "sqlite:///" + sqlDataBaseFile
@@ -136,7 +129,7 @@ def run():
         nodes.update_nodes()
         # nodes.update_nodes(weights={"hist": 1})
         stm = Steem(node=nodes.get_nodes(hive=hive_blockchain))
-        print(str(stm))
+        print(stm)
 
         print("Fetch new account history ops.")
 
@@ -164,7 +157,7 @@ def run():
             data = get_account_trx_data(account, start_block, start_index)
 
             data_batch = []
-            for cnt in range(0, len(data)):
+            for cnt in range(len(data)):
                 data_batch.append(data[cnt])
                 if cnt % 1000 == 0:
                     accountTrx[account_name].add_batch(data_batch)
@@ -184,7 +177,7 @@ def run():
             data = get_account_trx_storage_data(account, start_index, stm)
 
             data_batch = []
-            for cnt in range(0, len(data)):
+            for cnt in range(len(data)):
                 data_batch.append(data[cnt])
                 if cnt % 1000 == 0:
                     trxStorage.add_batch(data_batch)

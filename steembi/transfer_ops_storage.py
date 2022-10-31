@@ -33,7 +33,7 @@ class AccountTrx(object):
 
     def __init__(self, db, account):
         self.db = db
-        self.__tablename__ = "%s_ops" % account
+        self.__tablename__ = f"{account}_ops"
 
     def exists_table(self):
         """ Check if the database table exists
@@ -41,10 +41,7 @@ class AccountTrx(object):
 
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
  
     def add(self, data):
         """ Add a new data set
@@ -55,12 +52,12 @@ class AccountTrx(object):
         self.db.commit()
 
     def get_all(self, op_types = []):
-        ops = []
         table = self.db[self.__tablename__]
-        for op in table.find(order_by='op_acc_index'):
-            if op["type"] in op_types or len(op_types) == 0:
-                ops.append(op)
-        return ops
+        return [
+            op
+            for op in table.find(order_by='op_acc_index')
+            if op["type"] in op_types or len(op_types) == 0
+        ]
 
     def get_newest(self, timestamp, op_types = [], limit=100):
         ops = []
@@ -128,19 +125,16 @@ class TransferTrx(object):
 
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def find(self, memo, to):
         table = self.db[self.__tablename__].table
-        statement = table.select(and_(table.c.memo.like("%" + memo + "%"), table.c.to == to))
+        statement = table.select(
+            and_(table.c.memo.like(f"%{memo}%"), table.c.to == to)
+        )
+
         result = self.db.query(statement)
-        ret = []
-        for r in result:
-            ret.append(r)
-        return ret
+        return list(result)
 
     def add(self, data):
         """ Add a new data set
@@ -202,10 +196,7 @@ class MemberHistDB(object):
 
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def add(self, data):
         """ Add a new data set
@@ -225,30 +216,20 @@ class MemberHistDB(object):
     def get_latest_block_num(self):
         table = self.db[self.__tablename__]
         op = table.find_one(order_by='-block_num')
-        if op is None:
-            return None
-        return op["block_num"]
+        return None if op is None else op["block_num"]
 
     def get_latest_timestamp(self):
         table = self.db[self.__tablename__]
         op = table.find_one(order_by='-timestamp')
-        if op is None:
-            return None
-        return op["timestamp"]
+        return None if op is None else op["timestamp"]
 
     def get_block(self, block_num):
-        ret = []
         table = self.db[self.__tablename__]
-        for op in table.find(block_num=block_num):
-            ret.append(op)
-        return ret
+        return list(table.find(block_num=block_num))
 
     def get_block_trx_id(self, block_num):
-        ret = []
         table = self.db[self.__tablename__]
-        for op in table.find(block_num=block_num):
-            ret.append(op["trx_id"])
-        return ret
+        return [op["trx_id"] for op in table.find(block_num=block_num)]
 
     def get_ops(self, op_type):
         table = self.db[self.__tablename__]
@@ -311,10 +292,7 @@ class PostsTrx(object):
 
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
  
     def add(self, data):
         """ Add a new data set
@@ -358,30 +336,20 @@ class PostsTrx(object):
     def get_latest_post(self):
         table = self.db[self.__tablename__]
         ret = table.find_one(order_by='-created')
-        if ret is None:
-            return None
-        return ret["created"]
+        return None if ret is None else ret["created"]
 
     def get_latest_block(self):
         table = self.db[self.__tablename__]
         ret = table.find_one(order_by='-created')
-        if ret is None:
-            return None
-        return ret["block"]
+        return None if ret is None else ret["block"]
 
     def get_author_posts(self, author):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(author=author, order_by='-created'):
-            posts.append(post)
-        return posts
+        return list(table.find(author=author, order_by='-created'))
 
     def get_posts(self):
         table = self.db[self.__tablename__]
-        posts = {}
-        for post in table.find(order_by='created'):
-            posts[post["authorperm"]] = post
-        return posts
+        return {post["authorperm"]: post for post in table.find(order_by='created')}
 
     def get_post(self, author, created):
         table = self.db[self.__tablename__]
@@ -392,24 +360,23 @@ class PostsTrx(object):
 
     def get_posts_list(self):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(order_by='created'):
-            posts.append(post)
-        return posts
+        return list(table.find(order_by='created'))
 
     def get_authorperm(self):
         table = self.db[self.__tablename__]
-        posts = {}
-        for post in table.find(order_by='created'):
-            posts[post["authorperm"]] = post["authorperm"]
-        return posts
+        return {
+            post["authorperm"]: post["authorperm"]
+            for post in table.find(order_by='created')
+        }
 
     def get_unvoted_post(self):
         table = self.db[self.__tablename__]
-        posts = {}
-        for post in table.find(voted=False, skip=False, comment_to_old=False, order_by='created'):
-            posts[post["authorperm"]] = post
-        return posts
+        return {
+            post["authorperm"]: post
+            for post in table.find(
+                voted=False, skip=False, comment_to_old=False, order_by='created'
+            )
+        }
 
     def update_voted(self, author, created, voted, voted_after=900):
         table = self.db[self.__tablename__]
@@ -428,17 +395,17 @@ class PostsTrx(object):
 
     def get_authorperm_list(self):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(order_by='created'):
-            posts.append(post["authorperm"])
-        return posts
+        return [post["authorperm"] for post in table.find(order_by='created')]
 
     def delete_old_posts(self, days):
         table = self.db[self.__tablename__]
-        del_posts = []
-        for post in table.find(order_by='created'):
-            if (datetime.utcnow() - post["created"]).total_seconds() > 60 * 60 * 24 * days:
-                del_posts.append({"author": post["author"], "created": post["created"]} )
+        del_posts = [
+            {"author": post["author"], "created": post["created"]}
+            for post in table.find(order_by='created')
+            if (datetime.utcnow() - post["created"]).total_seconds()
+            > 60 * 60 * 24 * days
+        ]
+
         for post in del_posts:
             table.delete(author=post["author"], created=post["created"])
 
@@ -478,10 +445,7 @@ class CurationOptimizationTrx(object):
 
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
  
     def add(self, data):
         """ Add a new data set
@@ -525,37 +489,25 @@ class CurationOptimizationTrx(object):
     def get_latest_post(self):
         table = self.db[self.__tablename__]
         ret = table.find_one(order_by='-created')
-        if ret is None:
-            return None
-        return ret["created"]
+        return None if ret is None else ret["created"]
 
     def get_last_updated_post(self):
         table = self.db[self.__tablename__]
         ret = table.find_one(order_by='updated')
-        if ret is None:
-            return None
-        return ret
+        return None if ret is None else ret
 
     def get_latest_block(self):
         table = self.db[self.__tablename__]
         ret = table.find_one(order_by='-created')
-        if ret is None:
-            return None
-        return ret["block"]
+        return None if ret is None else ret["block"]
 
     def get_author_posts(self, author):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(author=author, order_by='-created'):
-            posts.append(post)
-        return posts
+        return list(table.find(author=author, order_by='-created'))
 
     def get_posts(self):
         table = self.db[self.__tablename__]
-        posts = {}
-        for post in table.find(order_by='created'):
-            posts[post["authorperm"]] = post
-        return posts
+        return {post["authorperm"]: post for post in table.find(order_by='created')}
 
     def get_post(self, author, created):
         table = self.db[self.__tablename__]
@@ -566,17 +518,14 @@ class CurationOptimizationTrx(object):
 
     def get_posts_list(self):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(order_by='created'):
-            posts.append(post)
-        return posts
+        return list(table.find(order_by='created'))
 
     def get_authorperm(self):
         table = self.db[self.__tablename__]
-        posts = {}
-        for post in table.find(order_by='created'):
-            posts[post["authorperm"]] = post["authorperm"]
-        return posts
+        return {
+            post["authorperm"]: post["authorperm"]
+            for post in table.find(order_by='created')
+        }
 
     def update_curation(self, member, created, best_time_delay, best_curation_performance, performance, updated):
         table = self.db[self.__tablename__]
@@ -585,17 +534,17 @@ class CurationOptimizationTrx(object):
 
     def get_authorperm_list(self):
         table = self.db[self.__tablename__]
-        posts = []
-        for post in table.find(order_by='created'):
-            posts.append(post["authorperm"])
-        return posts
+        return [post["authorperm"] for post in table.find(order_by='created')]
 
     def delete_old_posts(self, days):
         table = self.db[self.__tablename__]
-        del_posts = []
-        for post in table.find(order_by='created'):
-            if (datetime.utcnow() - post["created"]).total_seconds() > 60 * 60 * 24 * days:
-                del_posts.append({"member": post["member"], "created": post["created"]} )
+        del_posts = [
+            {"member": post["member"], "created": post["created"]}
+            for post in table.find(order_by='created')
+            if (datetime.utcnow() - post["created"]).total_seconds()
+            > 60 * 60 * 24 * days
+        ]
+
         for post in del_posts:
             table.delete(member=post["member"], created=post["created"])
 

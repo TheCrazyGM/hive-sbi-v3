@@ -60,7 +60,7 @@ class Member(dict):
         index = 0
         for i in range(len(self.share_age_list)):
             if self.share_timestamp[i] <= timestamp:
-                
+
                 total_share_days += self.share_age_list[i] * self.shares_list[i]
                 index += 1
         self["total_share_days"] = total_share_days

@@ -41,45 +41,45 @@ if __name__ == "__main__":
         databaseConnector = config_data["databaseConnector"]
         databaseConnector2 = config_data["databaseConnector2"]
         other_accounts = config_data["other_accounts"]
-    
+
     # sqlDataBaseFile = os.path.join(path, database)
     # databaseConnector = "sqlite:///" + sqlDataBaseFile
     phase = 0
 
-    
+
     db = dataset.connect(databaseConnector)    
-    
-    
+
+
     # Update current node list from @fullnodeupdate
     nodes = NodeList()
     try:
         nodes.update_nodes(weights={"hist": 1})
     except:
-        print("could not update nodes")           
+        print("could not update nodes")
     stm = Steem(node=nodes.get_nodes())
-    print(str(stm))
+    print(stm)
     set_shared_steem_instance(stm)
-    
+
     blockchain = Blockchain()
 
-    
+
     accountTrx = {}
     for account in accounts:
         accountTrx[account] = AccountTrx(db, account)
-        
+
         if not accountTrx[account].exists_table():
             accountTrx[account].create_table()
 
     for account_name in accounts:
         account = Account(account_name)
-        print("account %s" % account["name"])
+        print(f'account {account["name"]}')
         # Go trough all transfer ops
         cnt = 0
         cnt = 0
         ops = accountTrx[account_name].get_all()
         last_op_index = -1
         for op in ops:
-            
+
             if op["op_acc_index"] - last_op_index != 1:
                 print("%s - has missing ops %d - %d != 1" % (account_name, op["op_acc_index"], last_op_index))
             else:
@@ -87,20 +87,20 @@ if __name__ == "__main__":
                 continue              
 
 
+    cnt = 0
     for account in other_accounts:
         account = Account(account)
-        print("account %s" % account["name"])
-        cnt = 0
+        print(f'account {account["name"]}')
         ops = accountTrx[account_name].get_all()
         last_op_index = -1
         for op in ops:
-            
+
             if op["op_acc_index"] - last_op_index != 1:
                 print("%s - has missing ops %d - %d != 1" % (account_name, op["op_acc_index"], last_op_index))
             else:
                 last_op_index = op["op_acc_index"]
                 continue            
-    
+
     stop_index = None
     # stop_index = addTzInfo(datetime(2018, 7, 21, 23, 46, 00))
     # stop_index = formatTimeString("2018-07-21T23:46:09")

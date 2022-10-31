@@ -67,16 +67,16 @@ def update_account(account, new_paid_post, new_paid_comment):
             continue
 
         if comment["parent_author"] == "" and created > addTzInfo(last_paid_post):
-            print("add post %s" % comment["authorperm"])
+            print(f'add post {comment["authorperm"]}')
             blog.append(comment["authorperm"])
         elif comment["parent_author"] != "" and created > addTzInfo(last_paid_comment):
-            print("add comment %s" % comment["authorperm"])
+            print(f'add comment {comment["authorperm"]}')
             posts.append(comment["authorperm"])
 
     post_rshares = 0
     for authorperm in blog:
         post = Comment(authorperm, steem_instance=stm)
-        print("Checking post %s" % post["authorperm"])
+        print(f'Checking post {post["authorperm"]}')
         if post["created"] > addTzInfo(new_paid_post):
             new_paid_post = post["created"].replace(tzinfo=None)
         last_paid_post = post["created"].replace(tzinfo=None)
@@ -124,15 +124,14 @@ def run():
     config_file = 'config.json'
     if not os.path.isfile(config_file):
         raise Exception("config.json is missing!")
-    else:
-        with open(config_file) as json_data_file:
-            config_data = json.load(json_data_file)
-        # print(config_data)
-        accounts = config_data["accounts"]
-        databaseConnector = config_data["databaseConnector"]
-        databaseConnector2 = config_data["databaseConnector2"]
-        mgnt_shares = config_data["mgnt_shares"]
-        hive_blockchain = config_data["hive_blockchain"]
+    with open(config_file) as json_data_file:
+        config_data = json.load(json_data_file)
+    # print(config_data)
+    accounts = config_data["accounts"]
+    databaseConnector = config_data["databaseConnector"]
+    databaseConnector2 = config_data["databaseConnector2"]
+    mgnt_shares = config_data["mgnt_shares"]
+    hive_blockchain = config_data["hive_blockchain"]
 
     start_prep_time = time.time()
     db2 = dataset.connect(databaseConnector2)
@@ -176,15 +175,17 @@ def run():
 
     print("sbi_update_curation_rshares: last_cycle: %s - %.2f min" % (
         formatTimeString(last_cycle), (datetime.utcnow() - last_cycle).total_seconds() / 60))
-    print("last_paid_post: %s - last_paid_comment: %s" % (
-        formatTimeString(last_paid_post), formatTimeString(last_paid_comment)))
+    print(
+        f"last_paid_post: {formatTimeString(last_paid_post)} - last_paid_comment: {formatTimeString(last_paid_comment)}"
+    )
+
 
     if (datetime.utcnow() - last_cycle).total_seconds() > 60 * share_cycle_min:
 
         new_cycle = (datetime.utcnow() - last_cycle).total_seconds() > 60 * share_cycle_min
         current_cycle = last_cycle + timedelta(seconds=60 * share_cycle_min)
 
-        print("Update member database, new cycle: %s" % str(new_cycle))
+        print(f"Update member database, new cycle: {new_cycle}")
         # memberStorage.wipe(True)
         member_accounts = memberStorage.get_all_accounts()
 
@@ -194,33 +195,27 @@ def run():
         stm = Steem(node=nodes.get_nodes(hive=hive_blockchain))
         stm2 = Steem(node=nodes.get_nodes(hive=hive_blockchain), use_condenser=True)
 
-        member_data = {}
         n_records = 0
         share_age_member = {}
-        for m in member_accounts:
-            member_data[m] = Member(memberStorage.get(m))
+        member_data = {m: Member(memberStorage.get(m)) for m in member_accounts}
+        print("reward voted steembasicincome post and comments")
+        # account = Account("steembasicincome", steem_instance=stm)
 
-        if True:
-            print("reward voted steembasicincome post and comments")
-            # account = Account("steembasicincome", steem_instance=stm)
+        if last_paid_post is None:
+            last_paid_post = datetime(2018, 8, 9, 3, 36, 48)
+        new_paid_post = last_paid_post
+        if last_paid_comment is None:
+            last_paid_comment = datetime(2018, 8, 9, 3, 36, 48)
+        # elif (datetime.utcnow() - last_paid_comment).total_seconds() / 60 / 60 / 24 < 6.5:
+        #    last_paid_comment = datetime.utcnow() - timedelta(days=7)
+        new_paid_comment = last_paid_comment
 
-            if last_paid_post is None:
-                last_paid_post = datetime(2018, 8, 9, 3, 36, 48)
-            new_paid_post = last_paid_post
-            if last_paid_comment is None:
-                last_paid_comment = datetime(2018, 8, 9, 3, 36, 48)
-            # elif (datetime.utcnow() - last_paid_comment).total_seconds() / 60 / 60 / 24 < 6.5:
-            #    last_paid_comment = datetime.utcnow() - timedelta(days=7)
-            new_paid_comment = last_paid_comment
-
-            for account in accounts:
-                accounts_data = update_account(account, new_paid_post, new_paid_comment)
+        for account in accounts:
+            accounts_data = update_account(account, new_paid_post, new_paid_comment)
 
         print("write member database")
         memberStorage.db = dataset.connect(databaseConnector2)
-        member_data_list = []
-        for m in member_data:
-            member_data_list.append(member_data[m])
+        member_data_list = list(member_data.values())
         memberStorage.add_batch(member_data_list)
         member_data_list = []
         for acc in accounts_data:

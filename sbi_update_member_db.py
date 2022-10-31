@@ -42,7 +42,7 @@ def memo_sp_delegation(transferMemos, memo_transfer_acc, sponsor, shares, sp_sha
         memo_transfer_acc.transfer(sponsor, 0.001, STEEM_symbol, memo=memo_text)
         sleep(4)
     except:
-        print("Could not sent 0.001 %s to %s" % (STEEM_symbol, sponsor))
+        print(f"Could not sent 0.001 {STEEM_symbol} to {sponsor}")
 
 
 def memo_welcome(transferMemos, memo_transfer_acc, sponsor, STEEM_symbol="STEEM"):
@@ -58,7 +58,7 @@ def memo_welcome(transferMemos, memo_transfer_acc, sponsor, STEEM_symbol="STEEM"
         memo_transfer_acc.transfer(sponsor, 0.001, STEEM_symbol, memo=memo_text)
         sleep(4)
     except:
-        print("Could not sent 0.001 %s to %s" % (STEEM_symbol, sponsor))
+        print(f"Could not sent 0.001 {STEEM_symbol} to {sponsor}")
 
 
 def memo_sponsoring(transferMemos, memo_transfer_acc, s, sponsor, STEEM_symbol="STEEM"):
@@ -76,7 +76,7 @@ def memo_sponsoring(transferMemos, memo_transfer_acc, s, sponsor, STEEM_symbol="
         memo_transfer_acc.transfer(s, 0.001, STEEM_symbol, memo=memo_text)
         sleep(4)
     except:
-        print("Could not sent 0.001 %s to %s" % (STEEM_symbol, s))
+        print(f"Could not sent 0.001 {STEEM_symbol} to {s}")
 
 
 def memo_update_shares(transferMemos, memo_transfer_acc, sponsor, shares, STEEM_symbol="STEEM"):
@@ -94,7 +94,7 @@ def memo_update_shares(transferMemos, memo_transfer_acc, sponsor, shares, STEEM_
         memo_transfer_acc.transfer(sponsor, 0.001, STEEM_symbol, memo=memo_text)
         sleep(4)
     except:
-        print("Could not sent 0.001 %s to %s" % (STEEM_symbol, sponsor))
+        print(f"Could not sent 0.001 {STEEM_symbol} to {sponsor}")
 
 
 def memo_sponsoring_update_shares(transferMemos, memo_transfer_acc, s, sponsor, shares, STEEM_symbol="STEEM"):
@@ -118,7 +118,7 @@ def memo_sponsoring_update_shares(transferMemos, memo_transfer_acc, s, sponsor, 
         memo_transfer_acc.transfer(s, 0.001, STEEM_symbol, memo=memo_text)
         sleep(4)
     except:
-        print("Could not sent 0.001 %s to %s" % (STEEM_symbol, s))
+        print(f"Could not sent 0.001 {STEEM_symbol} to {s}")
 
 
 def run():

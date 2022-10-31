@@ -55,16 +55,14 @@ if __name__ == '__main__':
         version=VERSION,
         description='Steem basic income library',
         long_description=get_long_description(),
-        download_url='https://github.com/holgern/steembasicincome/tarball/' + VERSION,
+        download_url=f'https://github.com/holgern/steembasicincome/tarball/{VERSION}',
         author='Holger Nahrstaedt',
         author_email='holger@nahrstaedt.de',
         maintainer='Holger Nahrstaedt',
         maintainer_email='holger@nahrstaedt.de',
         url='http://www.github.com/holgern/steembasicincome',
         keywords=['steem', 'library', 'ubi', 'steembasicincome'],
-        packages=[
-            "steembi"
-        ],
+        packages=["steembi"],
         classifiers=[
             'License :: OSI Approved :: MIT License',
             'Operating System :: OS Independent',
@@ -79,8 +77,7 @@ if __name__ == '__main__':
             'Topic :: Office/Business :: Financial',
         ],
         install_requires=requires,
-        entry_points={
-        },
+        entry_points={},
         setup_requires=['pytest-runner'],
         tests_require=tests_require,
         include_package_data=True,

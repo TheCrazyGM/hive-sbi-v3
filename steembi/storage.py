@@ -39,10 +39,7 @@ class TrxDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get_all_data(self):
         """ Returns the public keys stored in the database
@@ -58,20 +55,14 @@ class TrxDB(object):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(source=source):
-            id_list.append(trx["index"])
-        return id_list
+        return [trx["index"] for trx in table.find(source=source)]
 
     def get_account(self, account, share_type="standard"):
         """ Returns all entries for given value
 
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(account=account, share_type=share_type):
-            id_list.append(trx)
-        return id_list        
+        return list(table.find(account=account, share_type=share_type))        
 
     def get(self, index, source):
         """ Returns all entries for given value
@@ -224,10 +215,7 @@ class MemberDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get_all_data(self):
         """ Returns the public keys stored in the database
@@ -238,10 +226,7 @@ class MemberDB(object):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table:
-            id_list.append(trx["account"])
-        return id_list
+        return [trx["account"] for trx in table]
     
     def add(self, data):
         """ Add a new data set
@@ -347,10 +332,7 @@ class ConfigurationDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get(self):
         """ Returns the public keys stored in the database
@@ -409,10 +391,7 @@ class BlacklistDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get(self):
         """ Returns the public keys stored in the database
@@ -458,57 +437,35 @@ class AccountsDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get(self):
         """ Returns the accounts stored in the database
         """
         table = self.db[self.__tablename__]
-        accounts = []
-        for a in table.all():
-            if a["voting"] == 1:
-                accounts.append(a["name"])
-        return accounts
+        return [a["name"] for a in table.all() if a["voting"] == 1]
 
     def get_data(self):
         table = self.db[self.__tablename__]
-        accounts = {}
-        for acc in table.all():
-            accounts[acc["name"]] = acc
-        return accounts
+        return {acc["name"]: acc for acc in table.all()}
         
     def get_transfer(self):
         """ Returns the accounts stored in the database
         """
         table = self.db[self.__tablename__]
-        accounts = []
-        for a in table.all():
-            if a["transfer"] == 1:
-                accounts.append(a["name"])
-        return accounts
+        return [a["name"] for a in table.all() if a["transfer"] == 1]
 
     def get_upvote_reward_rshares(self):
         """ Returns the accounts stored in the database
         """
         table = self.db[self.__tablename__]
-        accounts = []
-        for a in table.all():
-            if a["upvote_reward_rshares"] == 1:
-                accounts.append(a["name"])
-        return accounts
+        return [a["name"] for a in table.all() if a["upvote_reward_rshares"] == 1]
 
     def get_transfer_memo_sender(self):
         """ Returns the accounts stored in the database
         """
         table = self.db[self.__tablename__]
-        accounts = []
-        for a in table.all():
-            if a["transfer_memo_sender"] == 1:
-                accounts.append(a["name"])
-        return accounts
+        return [a["name"] for a in table.all() if a["transfer_memo_sender"] == 1]
 
     def set(self, data):
         """ Add a new data set
@@ -560,10 +517,7 @@ class KeysDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get(self, account, key_type):
         """ Returns the public keys stored in the database
@@ -606,10 +560,7 @@ class TransferMemoDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get(self, memo_type):
         """ Returns the public keys stored in the database
@@ -636,10 +587,7 @@ class TransactionMemoDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get_all_data(self):
         """ Returns the public keys stored in the database
@@ -650,37 +598,26 @@ class TransactionMemoDB(object):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table:
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table]
 
     def get_all_op_index(self, source):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(source=source):
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table.find(source=source)]
 
     def get_sender(self, sender):
         """ Returns all entries for given value
 
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(sender=sender):
-            id_list.append(trx)
-        return id_list        
+        return list(table.find(sender=sender))        
 
     def get_all(self):
         """ Returns all entries for given value
 
         """
-        table = self.db[self.__tablename__]
-        for d in table:
-            yield d
+        yield from self.db[self.__tablename__]
 
     def update_memo(self, sender, to, memo_old, memo_new, encrypted):
         """ Change share_age depending on timestamp
@@ -759,10 +696,7 @@ class TransactionOutDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get_all_data(self):
         """ Returns the public keys stored in the database
@@ -773,29 +707,20 @@ class TransactionOutDB(object):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table:
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table]
 
     def get_all_op_index(self, source):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(source=source):
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table.find(source=source)]
 
     def get_sender(self, sender):
         """ Returns all entries for given value
 
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(sender=sender):
-            id_list.append(trx)
-        return id_list        
+        return list(table.find(sender=sender))        
 
     def get(self, ID):
         """ Returns all entries for given value
@@ -847,10 +772,7 @@ class PendingRefundDB(object):
         """
         if len(self.db.tables) == 0:
             return False
-        if self.__tablename__ in self.db.tables:
-            return True
-        else:
-            return False
+        return self.__tablename__ in self.db.tables
 
     def get_all_data(self):
         """ Returns the public keys stored in the database
@@ -861,29 +783,20 @@ class PendingRefundDB(object):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table:
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table]
 
     def get_all_op_index(self, source):
         """ Returns all ids
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(source=source):
-            id_list.append(trx["id"])
-        return id_list
+        return [trx["id"] for trx in table.find(source=source)]
 
     def get_sender(self, sender):
         """ Returns all entries for given value
 
         """
         table = self.db[self.__tablename__]
-        id_list = []
-        for trx in table.find(sender=sender):
-            id_list.append(trx)
-        return id_list        
+        return list(table.find(sender=sender))        
 
     def get(self, ID):
         """ Returns all entries for given value

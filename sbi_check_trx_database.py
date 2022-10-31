@@ -17,22 +17,21 @@ if __name__ == "__main__":
     config_file = 'config.json'
     if not os.path.isfile(config_file):
         raise Exception("config.json is missing!")
-    else:
-        with open(config_file) as json_data_file:
-            config_data = json.load(json_data_file)
-        print(config_data)
-        accounts = config_data["accounts"]
-        databaseConnector = config_data["databaseConnector"]
-        databaseConnector2 = config_data["databaseConnector2"]
-        other_accounts = config_data["other_accounts"]
-        mgnt_shares = config_data["mgnt_shares"]
-        hive_blockchain = config_data["hive_blockchain"]
+    with open(config_file) as json_data_file:
+        config_data = json.load(json_data_file)
+    print(config_data)
+    accounts = config_data["accounts"]
+    databaseConnector = config_data["databaseConnector"]
+    databaseConnector2 = config_data["databaseConnector2"]
+    other_accounts = config_data["other_accounts"]
+    mgnt_shares = config_data["mgnt_shares"]
+    hive_blockchain = config_data["hive_blockchain"]
     db = dataset.connect(databaseConnector)
     db2 = dataset.connect(databaseConnector2)
     # Create keyStorage
     trxStorage = TrxDB(db2)
     memberStorage = MemberDB(db2)
-    
+
     # Update current node list from @fullnodeupdate
     # nodes = NodeList()
     # nodes.update_nodes()
@@ -57,15 +56,13 @@ if __name__ == "__main__":
     print("Number of shares:")
     print("shares: %d" % shares)
     print("status:")
-    for s in status:
-        print("%d status entries with %s" % (status[s], s))
+    for s, value in status.items():
+        print("%d status entries with %s" % (value, s))
     print("share_types:")
-    for s in share_type:
-        print("%d share_type entries with %s" % (share_type[s], s))
-        
-    accountTrx = {}
-    for account in accounts:
-        accountTrx[account] = AccountTrx(db, account)
+    for s, value_ in share_type.items():
+        print("%d share_type entries with %s" % (value_, s))
+
+    accountTrx = {account: AccountTrx(db, account) for account in accounts}
     sbi_ops = accountTrx["steembasicincome"].get_all()
     last_index = - 1
     for op in trxStorage.get_all_data_sorted():

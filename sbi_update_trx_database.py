@@ -10,23 +10,22 @@ import dataset
 import json
 from steembi.parse_hist_op import ParseAccountHist
 from steembi.storage import TrxDB, MemberDB
-    
+
 
 if __name__ == "__main__":
     config_file = 'config.json'
     if not os.path.isfile(config_file):
         raise Exception("config.json is missing!")
-    else:
-        with open(config_file) as json_data_file:
-            config_data = json.load(json_data_file)
-        print(config_data)
-        accounts = config_data["accounts"]
-        databaseConnector = config_data["databaseConnector"]
-        databaseConnector2 = config_data["databaseConnector2"]
-        other_accounts = config_data["other_accounts"]
-        mgnt_shares = config_data["mgnt_shares"]
-        hive_blockchain = config_data["hive_blockchain"]
-        
+    with open(config_file) as json_data_file:
+        config_data = json.load(json_data_file)
+    print(config_data)
+    accounts = config_data["accounts"]
+    databaseConnector = config_data["databaseConnector"]
+    databaseConnector2 = config_data["databaseConnector2"]
+    other_accounts = config_data["other_accounts"]
+    mgnt_shares = config_data["mgnt_shares"]
+    hive_blockchain = config_data["hive_blockchain"]
+
 
     db2 = dataset.connect(databaseConnector2)
     # Create keyStorage
@@ -38,7 +37,7 @@ if __name__ == "__main__":
     try:
         nodes.update_nodes()
     except:
-        print("could not update nodes")       
+        print("could not update nodes")
     stm = Steem(node=nodes.get_nodes(hive=hive_blockchain))
     data = trxStorage.get_all_data()
     status = {}
